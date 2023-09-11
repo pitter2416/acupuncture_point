@@ -14,23 +14,25 @@
     const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
     //创建一个WebGL渲染器
     const renderer = new THREE.WebGLRenderer({antialias: true});
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(width,height)//设置渲染区尺寸
-    renderer.setClearColor(0xcccccc);
     
     function init() {
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(width,height)//设置渲染区尺寸
+        renderer.setClearColor(0xffcccccc);
+        target.value.appendChild(renderer.domElement)
+
         camera.position.z = 120;
-        const controls = new OrbitControls(camera, renderer.domElement);
+        const controls = new OrbitControls(camera, target.value);
         controls.minDistance = 50;
         controls.maxDistance = 200;
 
-        scene.add(new THREE.AmbientLight(0x443333));
+        scene.add(new THREE.AmbientLight(0xff443333));
 
-        const dirLight1 = new THREE.DirectionalLight(0xffddcc, 1);
+        const dirLight1 = new THREE.DirectionalLight(0xffffddcc, 1);
         dirLight1.position.set(1, 0.75, 0.5);
         scene.add(dirLight1);
 
-        const dirLight2 = new THREE.DirectionalLight(0xccccff, 1);
+        const dirLight2 = new THREE.DirectionalLight(0xffccccff, 1);
         dirLight2.position.set(-1, 0.75, -0.5);
         scene.add(dirLight2);
 
@@ -95,7 +97,6 @@
     }
 
     onMounted(()=>{
-        target.value.appendChild(renderer.domElement)
         init();
         animate();
         window.addEventListener("resize", myEventHandler);
