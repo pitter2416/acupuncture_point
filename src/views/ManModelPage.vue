@@ -8,11 +8,13 @@
     import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js'
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
     import {man} from '../assets/model/man.js'
+    import router from '../router'
     const route = useRoute()
     const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
     const target = ref();
     var mesh;
     const decals = [];
+    const preMeshList = [];
     const preLoadMeshList = [];
     const width = window.innerWidth, height = window.innerHeight;
     //创建一个三维场景
@@ -113,7 +115,6 @@
 
      // 把所有穴位点全部添加到人体上，并设置成不透明
      function preRender() {
-        preLoadMeshList.length = 0;
         for (var d of man) {
             for (var d1 of d.acupoints) {
                 preLoadMeshList.push(d1)
@@ -124,7 +125,6 @@
             // 创建一个圆球的几何体
             var geometry = new THREE.SphereGeometry(0.5, 20, 20);
             // 创建一个材质
-            // console.log('ids',ids, 'model.id', model.id, ids.indexOf(model.id))
             var material = new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0});
             var mesh1 = new THREE.Mesh(geometry, material)
             // Set the transformation matrix
@@ -137,6 +137,7 @@
             mesh.attach(mesh1);
             if(ids.indexOf(model.id) != -1) {
                 mesh1.material.opacity = 1;
+                preMeshList.push(mesh1);
                 mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
                 addText(mesh1, model);
             }
@@ -189,14 +190,19 @@
             ( font ) =>{
                 mFont = font;
                 addText(m, model);
-                console.log( font );
-            }, ( xhr ) => {
-                console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-            }, ( err ) => {
-                console.log( 'An error happened' );
             }
         );
+    }
 
+    function removeDecals() {
+        decals.forEach(function (d) {
+            mesh.remove(d);
+        });
+        decals.length = 0;
+        preMeshList.forEach(function (d) {
+            d.material.opacity = 0;
+        });
+        preMeshList.length = 0;
     }
 
     onMounted(()=>{
@@ -205,6 +211,22 @@
         window.addEventListener("resize", myEventHandler);
 
     })
+
+    router.afterEach((to, from) => {
+        // 在这里处理哈希变化的逻辑
+        removeDecals();
+        const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
+        for (var i = 0; i < preLoadMeshList.length; i++) {
+            var model = preLoadMeshList[i];
+            if(ids.indexOf(model.id) != -1) {
+                var mesh1 = mesh.children.find(e => e.name == `${model.id}`)
+                mesh1.material.opacity = 1;
+                preMeshList.push(mesh1);
+                mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
+                addText(mesh1, model);
+            }
+        }
+    });
   
 </script>
 
