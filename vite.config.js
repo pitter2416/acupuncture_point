@@ -26,6 +26,17 @@ export default defineConfig({
           },
         ],
       },
+      {
+        test: /\.mtl$/i,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 8192,
+            },
+          },
+        ],
+      },
     ],
   },
 })
