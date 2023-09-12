@@ -12,7 +12,7 @@
     import router from '../router'
 
     const route = useRoute()
-    const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
+    const ids = (route.query.ids || '').split(',');
     const target = ref();
     var mesh;
     const decals = [];
@@ -123,6 +123,7 @@
      function preRender() {
         preLoadMeshList.length = 0;
         preLoadMeshList.push(...manObj.filter(e=>(e.x+e.y+e.z) != 0));
+        var finishObj;
         for (var i = 0; i < preLoadMeshList.length; i++) {
             var model = preLoadMeshList[i];
             // 创建一个圆球的几何体
@@ -136,15 +137,74 @@
             mesh1.matrix = matrix;
             mesh1.position.setFromMatrixPosition(matrix);
             mesh1.rotation.setFromRotationMatrix(matrix);
-            mesh1.name = `${model.id}`;
+            mesh1.name = model.id;
             mesh.attach(mesh1);
             if(ids.indexOf(model.id) != -1) {
                 mesh1.material.opacity = 1;
                 preMeshList.push(mesh1);
                 mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
                 addText(mesh1, model);
+                finishObj = model;
             }
         }
+
+        if(finishObj != null) {
+            setTimeout(() => {
+                onAcupointsClick(finishObj);
+            }, 500);
+        }
+    }
+
+    function onAcupointsClick(obj) {
+        var currentObj;
+        var p1 = {
+            "x": -1.1939713519864394,
+            "y": 2.693668568322245,
+            "z": 2.3323370306122655,
+        }
+        var p2 = {
+            "x": -1.3642906221490927,
+            "y": 6.647416889927825,
+            "z": -6.2312180591067445,
+        }
+
+        var p3 = {
+            "x": (obj.position.x + obj.position.x) / 0.8,
+            "y": 25.706226638635073,
+            "z": (obj.position.z + obj.position.z) / 0.8,
+        }
+        camera.position.copy(obj.z < 0 ? p2 : p1)
+        if([3.803792830923257, -41.16780364415135, -40.91256046796157].indexOf(obj.position.y) != -1) {
+            camera.position.copy(obj.position)
+            scale = true;
+        }
+        const wheelEvt1 = document.createEvent('MouseEvents');
+        wheelEvt1.deltaY = -10
+        wheelEvt1.initMouseEvent('wheel', true, true,)
+        for (let i = 1; i <= 10; i++) {
+            setTimeout(() => {
+                document.querySelector('canvas').dispatchEvent(wheelEvt1);
+            }, i * 30);
+        }
+        setTimeout(() => {
+            currentObj = undefined;
+        }, 2000);
+        setTimeout(() => {
+            currentObj = obj;
+            const wheelEvt1 = document.createEvent('MouseEvents');
+            wheelEvt1.deltaY = 10
+            // Initializing the event
+            wheelEvt1.initMouseEvent(
+                'wheel',
+                true,
+                true,
+            )
+            for (let i = 1; i <= 5; i++) {
+                setTimeout(() => {
+                    document.querySelector('canvas').dispatchEvent(wheelEvt1);
+                }, i * 50);
+            }
+        }, 300);
     }
 
     function addText(m, model) {
@@ -209,16 +269,23 @@
     router.afterEach((_, __) => {
         // 在这里处理哈希变化的逻辑
         removeDecals();
-        const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
+        var finishObj;
+        const ids = (route.query.ids || '').split(',')
         for (var i = 0; i < preLoadMeshList.length; i++) {
             var model = preLoadMeshList[i];
             if(ids.indexOf(model.id) != -1) {
-                var mesh1 = mesh.children.find(e => e.name == `${model.id}`)
+                var mesh1 = mesh.children.find(e => e.name == model.id)
                 mesh1.material.opacity = 1;
                 preMeshList.push(mesh1);
                 mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
                 addText(mesh1, model);
+                finishObj = model;
             }
+        }
+        if(finishObj != null) {
+            setTimeout(() => {
+                onAcupointsClick(finishObj);
+            }, 500);
         }
     });
   
