@@ -7,8 +7,10 @@
     import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
     import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js'
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-    import {man} from '../assets/model/man.js'
+    import manObj from '../assets/model/man.js'
+
     import router from '../router'
+
     const route = useRoute()
     const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
     const target = ref();
@@ -27,6 +29,10 @@
     const camera = new THREE.PerspectiveCamera(40, width / height, 3, 1000);
     //创建一个WebGL渲染器
     const renderer = new THREE.WebGLRenderer({antialias: true});
+
+    fontLoader.load('fonts/helvetiker_bold.typeface.json', font => {
+        mFont = font;
+    });
     
     function init() {
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -115,11 +121,8 @@
 
      // 把所有穴位点全部添加到人体上，并设置成不透明
      function preRender() {
-        for (var d of man) {
-            for (var d1 of d.acupoints) {
-                preLoadMeshList.push(d1)
-            }
-        }
+        preLoadMeshList.length = 0;
+        preLoadMeshList.push(...manObj.filter(e=>(e.x+e.y+e.z) != 0));
         for (var i = 0; i < preLoadMeshList.length; i++) {
             var model = preLoadMeshList[i];
             // 创建一个圆球的几何体
@@ -145,53 +148,45 @@
     }
 
     function addText(m, model) {
-        if(mFont != null) {
-            var text = model.name;
-            var geometry = new TextGeometry(text, {
-                font: mFont,          // 字体格式
-                size: 1.2,           // 字体大小
-                height: 0.,          // 字体深度
-                curveSegments: 11,  // 曲线控制点数
-                bevelEnabled: false, // 斜角
-                bevelThickness: 0.1,  // 斜角的深度
-                bevelSize: 1,       // 斜角的大小
-                bevelSegments: 1    // 斜角段数
-            });
-            var mat = new THREE.MeshPhongMaterial({
-                color: m.material.color,
-                opacity: 0.3,
-                shininess: 1,
-            });
-            var mesh1 = new THREE.Mesh(geometry, mat);
-            mesh1.needsUpdate = true;
-            mesh1.position.copy(model.position);
-            mesh1.position.z += model.z < 0 ? -1.5 : 1.5
-            mesh1.rotation.y = model.z < 0 ? -Math.PI : mesh1.rotation.y
-            mesh1.position.x += (model.z < 0 && model.position.x > 9 && model.position.x < 13.5) ? 5 : 0.1
-            if(model.position.y > -40 && model.position.y<-36 ) {
-                mesh1.position.y += 1;
-                mesh1.position.x += model.position.x;
-            } else if(model.position.y > -42 && model.position.y <= -40) {
-                mesh1.position.y -= 1.5;
-            } else if (model.position.y > 33.05 && model.position.y <= 37.5) {
-                if(model.position.z < -1) {
-                    mesh1.position.x += 1.8*model.name.length;
-                } else {
-                    mesh1.position.x -= 1.8 * model.name.length;
-                }
-            } else if(model.position.y == 9.356680189579848) {
-                mesh1.position.x += 3.2;
+        if(mFont == null) return;
+        var text = model.name;
+        var geometry = new TextGeometry(text, {
+            font: mFont,          // 字体格式
+            size: 1.2,           // 字体大小
+            height: 0.,          // 字体深度
+            curveSegments: 11,  // 曲线控制点数
+            bevelEnabled: false, // 斜角
+            bevelThickness: 0.1,  // 斜角的深度
+            bevelSize: 1,       // 斜角的大小
+            bevelSegments: 1    // 斜角段数
+        });
+        var mat = new THREE.MeshPhongMaterial({
+            color: m.material.color,
+            opacity: 0.3,
+            shininess: 1,
+        });
+        var mesh1 = new THREE.Mesh(geometry, mat);
+        mesh1.needsUpdate = true;
+        mesh1.position.copy(model.position);
+        mesh1.position.z += model.z < 0 ? -1.5 : 1.5
+        mesh1.rotation.y = model.z < 0 ? -Math.PI : mesh1.rotation.y
+        mesh1.position.x += (model.z < 0 && model.position.x > 9 && model.position.x < 13.5) ? 5 : 0.1
+        if(model.position.y > -40 && model.position.y<-36 ) {
+            mesh1.position.y += 1;
+            mesh1.position.x += model.position.x;
+        } else if(model.position.y > -42 && model.position.y <= -40) {
+            mesh1.position.y -= 1.5;
+        } else if (model.position.y > 33.05 && model.position.y <= 37.5) {
+            if(model.position.z < -1) {
+                mesh1.position.x += 1.8*model.name.length;
+            } else {
+                mesh1.position.x -= 1.8 * model.name.length;
             }
-            mesh.attach(mesh1);
-            decals.push(mesh1);
-            return
+        } else if(model.position.y == 9.356680189579848) {
+            mesh1.position.x += 3.2;
         }
-        fontLoader.load('fonts/helvetiker_bold.typeface.json',
-            ( font ) =>{
-                mFont = font;
-                addText(m, model);
-            }
-        );
+        mesh.attach(mesh1);
+        decals.push(mesh1);
     }
 
     function removeDecals() {
@@ -209,10 +204,9 @@
         init();
         animate();
         window.addEventListener("resize", myEventHandler);
-
     })
 
-    router.afterEach((to, from) => {
+    router.afterEach((_, __) => {
         // 在这里处理哈希变化的逻辑
         removeDecals();
         const ids = (route.query.ids || '').split(',').map(i=>parseInt(i));
