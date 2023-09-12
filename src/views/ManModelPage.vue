@@ -15,8 +15,10 @@
     const ids = (route.query.ids || '').split(',');
     const target = ref();
     var mesh;
+    var targetObj;
     const decals = [];
     const preMeshList = [];
+
     const preLoadMeshList = [];
     const width = window.innerWidth, height = window.innerHeight;
     //创建一个三维场景
@@ -27,6 +29,7 @@
     const mtlLoader = new MTLLoader();
     const objLoader = new OBJLoader();
     const camera = new THREE.PerspectiveCamera(40, width / height, 3, 1000);
+    camera.lookAt(0, 0, 0); // 将相机视点设置为场景中心
     //创建一个WebGL渲染器
     const renderer = new THREE.WebGLRenderer({antialias: true});
 
@@ -76,6 +79,7 @@
             objLoader.setMaterials(materials);
             // 使用 OBJLoader 加载 OBJ 文件
             objLoader.load('model/man/man.obj', function(object) {
+                targetObj = object;
                 mesh = object.children[0];
                 object.traverse(function (child) {
                     if (child instanceof THREE.Mesh) {
@@ -142,7 +146,7 @@
             if(ids.indexOf(model.id) != -1) {
                 mesh1.material.opacity = 1;
                 preMeshList.push(mesh1);
-                mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
+                mesh1.material.color = new THREE.Color( 0x0000ff );//Math.random()*0x00ff00<<0
                 addText(mesh1, model);
                 finishObj = model;
             }
@@ -156,53 +160,52 @@
     }
 
     function onAcupointsClick(obj) {
-        var currentObj;
         var p1 = {
             "x": -1.1939713519864394,
             "y": 2.693668568322245,
             "z": 2.3323370306122655,
         }
         var p2 = {
-            "x": -1.3642906221490927,
-            "y": 6.647416889927825,
-            "z": -6.2312180591067445,
+            "x": 10.3642906221490927,
+            "y": 1.647416889927825,
+            "z": -20.2312180591067445,
         }
-
-        var p3 = {
-            "x": (obj.position.x + obj.position.x) / 0.8,
-            "y": 25.706226638635073,
-            "z": (obj.position.z + obj.position.z) / 0.8,
-        }
-        camera.position.copy(obj.z < 0 ? p2 : p1)
-        if([3.803792830923257, -41.16780364415135, -40.91256046796157].indexOf(obj.position.y) != -1) {
-            camera.position.copy(obj.position)
-            scale = true;
-        }
+        console.log('obj',obj)
+        // if(obj.z >= 0) {
+        //     targetObj.rotateY(Math.PI);
+        // } else {
+        //     targetObj.rotateY(-Math.PI);
+        // }
+        camera.position.copy(obj.z < 0 ? p2 : p1);
         const wheelEvt1 = document.createEvent('MouseEvents');
         wheelEvt1.deltaY = -10
-        wheelEvt1.initMouseEvent('wheel', true, true,)
-        for (let i = 1; i <= 10; i++) {
+        // Initializing the event
+        wheelEvt1.initMouseEvent(
+            'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+            true,       // bubbles (event will bubble up through the DOM)
+            true,       // cancelable (event can be canceled)
+        )
+
+        for (let i = 1; i <= 2; i++) {
             setTimeout(() => {
                 document.querySelector('canvas').dispatchEvent(wheelEvt1);
-            }, i * 30);
+            }, i * 50);
         }
+        
         setTimeout(() => {
-            currentObj = undefined;
-        }, 2000);
-        setTimeout(() => {
-            currentObj = obj;
             const wheelEvt1 = document.createEvent('MouseEvents');
             wheelEvt1.deltaY = 10
             // Initializing the event
             wheelEvt1.initMouseEvent(
-                'wheel',
-                true,
-                true,
+                'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+                true,       // bubbles (event will bubble up through the DOM)
+                true,       // cancelable (event can be canceled)
             )
-            for (let i = 1; i <= 5; i++) {
+
+            for (let i = 1; i <= 18; i++) {
                 setTimeout(() => {
                     document.querySelector('canvas').dispatchEvent(wheelEvt1);
-                }, i * 50);
+                }, i * 30);
             }
         }, 300);
     }
@@ -277,7 +280,7 @@
                 var mesh1 = mesh.children.find(e => e.name == model.id)
                 mesh1.material.opacity = 1;
                 preMeshList.push(mesh1);
-                mesh1.material.color = new THREE.Color( Math.random()*0x00ff00<<0);
+                mesh1.material.color = new THREE.Color( 0x0000ff ); //Math.random()*0x00ff00<<0
                 addText(mesh1, model);
                 finishObj = model;
             }
