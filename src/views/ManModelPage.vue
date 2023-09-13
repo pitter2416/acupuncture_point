@@ -180,6 +180,26 @@
                 // objPosition = object.position;
                 // finalPosition = camera.position;
                 animate();
+
+                if(ids) {
+                    var finishObj;
+                    mesh.children.forEach(e=>e.material.opacity=0);
+                    ids.forEach((id) => {
+                        var cube = mesh.children.find(e => e.name == id)
+                        var model = manObj.find((d)=>d.id==id)
+                        if(cube && model) {
+                            cube.material.opacity = 1;
+                            addText(cube, model);
+                            finishObj = model;
+                        }
+                    });
+
+                    if(finishObj != null) {
+                        setTimeout(() => {
+                            onAcupointsClick(finishObj);
+                        }, 500);
+                    }
+                }
             })
         })
 
@@ -220,70 +240,71 @@
             mesh1.rotation.setFromRotationMatrix(matrix);
             mesh1.name = model.id;
             mesh.attach(mesh1);
-            if(ids.indexOf(model.id) != -1) {
-                mesh1.material.opacity = 1;
-                preMeshList.push(mesh1);
-                mesh1.material.color = new THREE.Color( 0x0000ff );//Math.random()*0x00ff00<<0
-                addText(mesh1, model);
-                finishObj = model;
-            }
         }
 
-        // if(finishObj != null) {
-        //     setTimeout(() => {
-        //         onAcupointsClick(finishObj);
-        //     }, 500);
-        // }
+        if(finishObj != null) {
+            setTimeout(() => {
+                onAcupointsClick(finishObj);
+            }, 500);
+        }
     }
 
     function onAcupointsClick(obj) {
-        var p1 = {
-            "x": -1.1939713519864394,
-            "y": 2.693668568322245,
-            "z": 2.3323370306122655,
-        }
-        var p2 = {
-            "x": 10.3642906221490927,
-            "y": 1.647416889927825,
-            "z": -20.2312180591067445,
-        }
-        // if(obj.z >= 0) {
-        //     targetObj.rotateY(Math.PI);
-        // } else {
-        //     targetObj.rotateY(-Math.PI);
+        // var cube = mesh.children.find(e => e.name == `${obj.id}`)
+        // cube.material.opacity = 1;
+        // addText(cube, obj);
+
+        // var p1 = {
+        //     "x": -1.1939713519864394,
+        //     "y": 2.693668568322245,
+        //     "z": 2.3323370306122655,
         // }
-        camera.position.copy(obj.z < 0 ? p2 : p1);
-        const wheelEvt1 = document.createEvent('MouseEvents');
-        wheelEvt1.deltaY = -10
-        // Initializing the event
-        wheelEvt1.initMouseEvent(
-            'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-            true,       // bubbles (event will bubble up through the DOM)
-            true,       // cancelable (event can be canceled)
-        )
+        // var p2 = {
+        //     "x": -1.3642906221490927,
+        //     "y": 6.647416889927825,
+        //     "z": -6.2312180591067445,
+        // }
 
-        for (let i = 1; i <= 2; i++) {
-            setTimeout(() => {
-                document.querySelector('canvas').dispatchEvent(wheelEvt1);
-            }, i * 50);
-        }
-        
-        setTimeout(() => {
-            const wheelEvt1 = document.createEvent('MouseEvents');
-            wheelEvt1.deltaY = 10
-            // Initializing the event
-            wheelEvt1.initMouseEvent(
-                'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-                true,       // bubbles (event will bubble up through the DOM)
-                true,       // cancelable (event can be canceled)
-            )
+        // var p3 = {
+        //     "x": (obj.position.x + obj.position.x) / 0.8,
+        //     "y": 25.706226638635073,
+        //     "z": (obj.position.z + obj.position.z) / 0.8,
+        // }
+        // camera.position.copy(obj.z < 0 ? p2 : p1)
+        // if([3.803792830923257, -41.16780364415135, -40.91256046796157].indexOf(obj.position.y) != -1) {
+        //     camera.position.copy(obj.position)
+        //     scale = true;
+        // }
+        // const wheelEvt1 = document.createEvent('MouseEvents');
+        // wheelEvt1.deltaY = -10
+        // // Initializing the event
+        // wheelEvt1.initMouseEvent(
+        //     'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+        //     true,       // bubbles (event will bubble up through the DOM)
+        //     true,       // cancelable (event can be canceled)
+        // )
 
-            for (let i = 1; i <= 18; i++) {
-                setTimeout(() => {
-                    document.querySelector('canvas').dispatchEvent(wheelEvt1);
-                }, i * 30);
-            }
-        }, 300);
+        // for (let i = 1; i <= 10; i++) {
+        //     setTimeout(() => {
+        //         document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        //     }, i * 30);
+        // }
+        // setTimeout(() => {
+        //     const wheelEvt1 = document.createEvent('MouseEvents');
+        //     wheelEvt1.deltaY = 10
+        //     // Initializing the event
+        //     wheelEvt1.initMouseEvent(
+        //         'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+        //         true,       // bubbles (event will bubble up through the DOM)
+        //         true,       // cancelable (event can be canceled)
+        //     )
+
+        //     for (let i = 1; i <= 15; i++) {
+        //         setTimeout(() => {
+        //             document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        //         }, i * 50);
+        //     }
+        // }, 300);
     }
 
     function addText(m, model) {
@@ -305,6 +326,7 @@
             shininess: 1,
         });
         var mesh1 = new THREE.Mesh(geometry, mat);
+        mesh1.material.opacity =1;
         mesh1.needsUpdate = true;
         mesh1.position.copy(model.position);
         mesh1.position.z += model.z < 0 ? -1.5 : 1.5
@@ -346,7 +368,6 @@
         if (v) {
             const ids = route.query.ids;
             if(ids.indexOf(v.id) == -1) {
-                console.log('route',route);
                 var list = []
                 if(ids) list.push(...ids.split(','))
                 list.push(v.id)
@@ -369,23 +390,24 @@
         // 在这里处理哈希变化的逻辑
         removeDecals();
         var finishObj;
-        const ids = (route.query.ids || '').split(',')
-        for (var i = 0; i < preLoadMeshList.length; i++) {
-            var model = preLoadMeshList[i];
-            if(ids.indexOf(model.id) != -1) {
-                var mesh1 = mesh.children.find(e => e.name == model.id)
-                mesh1.material.opacity = 1;
-                preMeshList.push(mesh1);
-                mesh1.material.color = new THREE.Color( 0x0000ff ); //Math.random()*0x00ff00<<0
-                addText(mesh1, model);
-                finishObj = model;
-            }
+        const ids = route.query.ids && route.query.ids.split(',')
+        if(ids) {
+            mesh.children.forEach(e=>e.material.opacity=0);
+            ids.forEach((id) => {
+                var cube = mesh.children.find(e => e.name == id)
+                var model = manObj.find((d)=>d.id==id)
+                if(cube && model) {
+                    cube.material.opacity = 1;
+                    addText(cube, model);
+                    finishObj = model;
+                }
+            });
         }
-        // if(finishObj != null) {
-        //     setTimeout(() => {
-        //         onAcupointsClick(finishObj);
-        //     }, 500);
-        // }
+        if(finishObj != null) {
+            setTimeout(() => {
+                onAcupointsClick(finishObj);
+            }, 500);
+        }
     });
   
 </script>
