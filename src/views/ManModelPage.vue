@@ -15,6 +15,12 @@
     const ids = (route.query.ids || '').split(',');
     const target = ref();
     var mesh;
+    var mouse = new THREE.Vector2();
+    const intersection = {
+        intersects: false,
+        point: new THREE.Vector3(),
+        normal: new THREE.Vector3()
+    };
     var targetObj;
     const decals = [];
     const preMeshList = [];
@@ -25,6 +31,10 @@
     const scene = new THREE.Scene();
     const fontLoader = new FontLoader();
     var mFont;
+    var line;
+    var raycaster;
+    var mouseHelper;
+    const intersects = [];
     var textureLoader = new THREE.TextureLoader();
     const mtlLoader = new MTLLoader();
     const objLoader = new OBJLoader();
@@ -36,6 +46,68 @@
     fontLoader.load('fonts/HK_Regular.json', font => {
         mFont = font;
     });
+
+    let moved = false;
+
+    window.addEventListener('pointerdown', function () {
+        moved = false;
+    });
+
+    window.addEventListener('pointerup', function (event) {
+        if (Object.prototype.toString.call(event.target) == '[object HTMLCanvasElement]') {
+            if (moved === false) {
+                checkIntersection(event.clientX, event.clientY);
+                // if (intersection.intersects) {
+                //     shoot();
+                // }
+            }
+        }
+    });
+
+    window.addEventListener('pointermove', onPointerMove);
+
+    function onPointerMove(event) {
+        if (event.isPrimary) {
+            checkIntersection(event.clientX, event.clientY);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        checkIntersection(event.clientX, event.clientY, true);
+    });
+
+    function checkIntersection(x, y, flag) {
+        if (mesh === undefined) return;
+        mouse.x = (x / window.innerWidth) * 2 - 1;
+        mouse.y = - (y / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
+        raycaster.intersectObject(mesh, false, intersects);
+        var objectIntersects = raycaster.intersectObjects( mesh.children );
+        if (intersects.length > 0) {
+            const p = intersects[0].point;
+            mouseHelper.position.copy(p);
+            intersection.point.copy(p);
+            const n = intersects[0].face.normal.clone();
+            n.transformDirection(mesh.matrixWorld);
+            n.multiplyScalar(10);
+            n.add(intersects[0].point);
+            intersection.normal.copy(intersects[0].face.normal);
+            mouseHelper.lookAt(n);
+            const positions = line.geometry.attributes.position;
+            positions.setXYZ(0, p.x, p.y, p.z);
+            positions.setXYZ(1, n.x, n.y, n.z);
+            positions.needsUpdate = true;
+            intersection.intersects = true;
+            intersects.length = 0;
+            if (flag) {
+                if(objectIntersects.length > 0) {
+                    showMesh(objectIntersects[0].object)
+                }
+            }
+        } else {
+            intersection.intersects = false;
+        }
+    }
     
     function init() {
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -47,6 +119,10 @@
         const controls = new OrbitControls(camera, target.value);
         controls.minDistance = 50;
         controls.maxDistance = 200;
+
+        controls.addEventListener('change', function () {
+            moved = true;
+        });
 
         scene.add(new THREE.AmbientLight(0x443333));
 
@@ -68,7 +144,7 @@
         const geometry = new THREE.BufferGeometry();
         geometry.setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
 
-        const line = new THREE.Line(geometry, new THREE.LineBasicMaterial());
+        line = new THREE.Line(geometry, new THREE.LineBasicMaterial());
         scene.add(line);
         
         var materialMap = textureLoader.load("model/man/man.jpg")
@@ -103,11 +179,12 @@
                 object.position.set(-x1, -y1, -z1); // 将模型进行偏移
                 // objPosition = object.position;
                 // finalPosition = camera.position;
+                animate();
             })
         })
 
-        const raycaster = new THREE.Raycaster();
-        const mouseHelper = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 10), new THREE.MeshNormalMaterial());
+        raycaster = new THREE.Raycaster();
+        mouseHelper = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 10), new THREE.MeshNormalMaterial());
         mouseHelper.visible = false;
         scene.add(mouseHelper);
     }
@@ -152,11 +229,11 @@
             }
         }
 
-        if(finishObj != null) {
-            setTimeout(() => {
-                onAcupointsClick(finishObj);
-            }, 500);
-        }
+        // if(finishObj != null) {
+        //     setTimeout(() => {
+        //         onAcupointsClick(finishObj);
+        //     }, 500);
+        // }
     }
 
     function onAcupointsClick(obj) {
@@ -170,7 +247,6 @@
             "y": 1.647416889927825,
             "z": -20.2312180591067445,
         }
-        console.log('obj',obj)
         // if(obj.z >= 0) {
         //     targetObj.rotateY(Math.PI);
         // } else {
@@ -263,9 +339,29 @@
         preMeshList.length = 0;
     }
 
+    function showMesh(obj) {
+        const cube = mesh.children.find(e=>e==obj);
+        if(cube == null) return;
+        const v = manObj.find(v => v.id == obj.name)
+        if (v) {
+            const ids = route.query.ids;
+            if(ids.indexOf(v.id) == -1) {
+                console.log('route',route);
+                var list = []
+                if(ids) list.push(...ids.split(','))
+                list.push(v.id)
+                router.push({ path: route.path, query: { ids: list.join(',')}})
+                try {
+                    window.parent.treatment.getAcupObj().setPoints(list); 
+                } catch (err){
+                }
+            }
+            return;
+        }
+    }
+
     onMounted(()=>{
         init();
-        animate();
         window.addEventListener("resize", myEventHandler);
     })
 
@@ -285,11 +381,11 @@
                 finishObj = model;
             }
         }
-        if(finishObj != null) {
-            setTimeout(() => {
-                onAcupointsClick(finishObj);
-            }, 500);
-        }
+        // if(finishObj != null) {
+        //     setTimeout(() => {
+        //         onAcupointsClick(finishObj);
+        //     }, 500);
+        // }
     });
   
 </script>
