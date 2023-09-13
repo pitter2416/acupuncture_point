@@ -33,7 +33,7 @@
     //创建一个WebGL渲染器
     const renderer = new THREE.WebGLRenderer({antialias: true});
 
-    fontLoader.load('fonts/helvetiker_bold.typeface.json', font => {
+    fontLoader.load('fonts/HK_Regular.json', font => {
         mFont = font;
     });
     
