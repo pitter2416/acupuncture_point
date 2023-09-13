@@ -16,6 +16,7 @@ migrate_working_dir/
 *.iws
 .idea/
 .vscode/
+**/.DS_Store
 
 /dist/
 /node_modules/
