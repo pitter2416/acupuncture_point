@@ -26,6 +26,8 @@
     function init() {
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
         camera.position.z = 120;
+        camera.position.x = 120;
+        camera.position.y = 120;
         // scene
         scene = new THREE.Scene();
         
@@ -48,28 +50,35 @@
         scene.add( camera );
         // manager
         function loadModel() {
-            object.traverse( function ( child ) {
-                if ( child.isMesh ) child.material.map = texture;
-            });
-            scene.add( object );
-            object.scale.set(0.5, 0.5, 0.5)
-            // 将模型的中心点设置到canvas坐标系的中心点，保证模型显示是居中的，object就是操作的目标模型
-            let box = new THREE.Box3().setFromObject(object); // 获取模型的包围盒
-            let mdlen = box.max.x - box.min.x; // 模型长度
-            let mdwid = box.max.z - box.min.z; // 模型宽度
-            let mdhei = box.max.y - box.min.y; // 模型高度
-            let x1 = box.min.x + mdlen / 2; // 模型中心点坐标X
-            let y1 = box.min.y + mdhei / 2; // 模型中心点坐标Y
-            let z1 = box.min.z + mdwid / 2; // 模型中心点坐标Z
-            object.position.set(-x1, -y1, -z1); // 将模型进行偏移
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.outputEncoding = THREE.sRGBEncoding;
-            object.position.set(-x1, -y1, -z1); // 将模型进行偏移
-
-            mMesh = object.children[0];
+            console.log('loadModel')
+            // object.traverse( function ( child ) {
+            //     if ( child.isMesh ) child.material.map = texture;
+            // });
+            // object.position.y = - 0.95;
+            // object.scale.setScalar( 0.01 );
+            // scene.add( object );
+            // mMesh = object.children[0];
             // mMesh.material.color = new THREE.Color( 0x0000ff )
-            preRender();
+            // preRender();
             // render();
+
+            // 创建一个圆球的几何体
+            const radius = 5; // 圆球的半径
+            const widthSegments = 112; // 球体宽度上的分段数
+            const heightSegments = 112; // 球体高度上的分段数
+            const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+            // 创建一个材质
+            const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            // 创建一个圆球的网格模型
+            mMesh = new THREE.Mesh(geometry, material);
+            // Set the transformation matrix
+            scene.add( mMesh );
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera)//执行渲染操作、指定场景、相机作为参数
         }
 
         const manager = new THREE.LoadingManager( loadModel );
@@ -78,16 +87,17 @@
         const texture = textureLoader.load('model/obj/uv_grid_opengl.jpg', render );
         texture.colorSpace = THREE.SRGBColorSpace;
         // model
-        function onProgress( xhr ) {
-            if ( xhr.lengthComputable ) {
-                const percentComplete = xhr.loaded / xhr.total * 100;
-            }
-        }
-        function onError() {}
-        const loader = new OBJLoader( manager );
-        loader.load('model/obj/male02.obj', function ( obj ) {
-            object = obj;
-        }, onProgress, onError );
+        // function onProgress( xhr ) {
+        //     if ( xhr.lengthComputable ) {
+        //         const percentComplete = xhr.loaded / xhr.total * 100;
+        //     }
+        // }
+        // function onError() {}
+        // const loader = new OBJLoader( manager );
+        // loader.load('model/obj/male02.obj', function ( obj ) {
+        //     object = obj;
+        // }, onProgress, onError );
+
         renderer = new THREE.WebGLRenderer( { antialias: true });
         // 设置背景色
         renderer.setClearColor(0xffffff);
@@ -99,6 +109,7 @@
         controls.maxDistance = 5;
         controls.addEventListener('change', ()=>{
             moved = true;
+            render();
         } );
         
     }
@@ -109,19 +120,19 @@
         preLoadMeshList.push(...objList.filter(e=>(e.x+e.y+e.z) != 0));
         for (var i = 0; i < preLoadMeshList.length; i++) {
             var model = preLoadMeshList[i];
-             // 创建一个圆球的几何体
-             var geometry = new THREE.SphereGeometry(0.5, 20, 20);
+            // 创建一个圆球的几何体
+            var geometry = new THREE.SphereGeometry(0.5, 20, 20);
             // 创建一个材质
-            var material = new THREE.MeshBasicMaterial({ color: 0xffff00});
+            var material = new THREE.MeshBasicMaterial({ color: 0xffffff});
             var mesh1 = new THREE.Mesh(geometry, material)
             // Set the transformation matrix
             var matrix = new THREE.Matrix4();
             matrix.makeTranslation(model.x, model.y, model.z);
             mesh1.matrix = matrix;
-            // mesh1.position.setFromMatrixPosition(matrix);
-            // mesh1.rotation.setFromRotationMatrix(matrix);
+            mesh1.position.setFromMatrixPosition(matrix);
+            mesh1.rotation.setFromRotationMatrix(matrix);
             mesh1.name = model.id;
-            object.attach(mesh1);
+            mMesh.attach(mesh1);
         }
     }
 
@@ -132,6 +143,7 @@
     }
 
     function checkIntersection(x, y, flag) {
+        return;
         if (!mMesh) return;
         mouse.x = (x / window.innerWidth) * 2 - 1;
         mouse.y = - (y / window.innerHeight) * 2 + 1;
@@ -180,7 +192,7 @@
         position.copy(intersection.point);
 
         // 创建一个圆球的几何体
-        const radius = 0.5; // 圆球的半径
+        const radius = 0.005; // 圆球的半径
         const widthSegments = 12; // 球体宽度上的分段数
         const heightSegments = 12; // 球体高度上的分段数
         const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
@@ -196,6 +208,7 @@
         if (list.length % 10 == 0) {
             console.log(list)
         }
+        render();
     }
 
     function render() {
