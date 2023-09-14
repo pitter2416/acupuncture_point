@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router';
 
 import ManModelPage from '../views/ManModelPage.vue'
-import XBotModelPage from '../views/XBotModelPage.vue'
-import ObjModelPage from '../views/ObjModelPage.vue'
-import TestModelPage from '../views/TestModelPage.vue'
+// import XBotModelPage from '../views/XBotModelPage.vue'
+// import ObjModelPage from '../views/ObjModelPage.vue'
+// import TestModelPage from '../views/TestModelPage.vue'
 
 const routes = [
   // { path: '/', component: ManModelPage},
   // { path: '/', component: XBotModelPage},
   // { path: '/man', component: ManModelPage},
-  { path: '/', component: ObjModelPage},
+  { path: '/', component: ManModelPage},
 ]
 
 const router = createRouter({

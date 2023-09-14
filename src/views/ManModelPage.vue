@@ -24,6 +24,7 @@
     var targetObj;
     const decals = [];
     const preMeshList = [];
+    var isPointClick = false;
 
     const preLoadMeshList = [];
     const width = window.innerWidth, height = window.innerHeight;
@@ -43,7 +44,7 @@
     //创建一个WebGL渲染器
     const renderer = new THREE.WebGLRenderer({antialias: true});
 
-    fontLoader.load('fonts/HK_Regular.json', font => {
+    fontLoader.load('fonts/font_weiruanyahei.json', font => {
         mFont = font;
     });
 
@@ -242,11 +243,11 @@
             mesh.attach(mesh1);
         }
 
-        if(finishObj != null) {
-            setTimeout(() => {
-                onAcupointsClick(finishObj);
-            }, 500);
-        }
+        // if(finishObj != null) {
+        //     setTimeout(() => {
+        //         onAcupointsClick(finishObj);
+        //     }, 500);
+        // }
     }
 
     function onAcupointsClick(obj) {
@@ -254,57 +255,49 @@
         // cube.material.opacity = 1;
         // addText(cube, obj);
 
-        // var p1 = {
-        //     "x": -1.1939713519864394,
-        //     "y": 2.693668568322245,
-        //     "z": 2.3323370306122655,
-        // }
-        // var p2 = {
-        //     "x": -1.3642906221490927,
-        //     "y": 6.647416889927825,
-        //     "z": -6.2312180591067445,
-        // }
+        var p1 = {"x":-1.2228690532530182,"y":5.0656494540051185,"z":2.6636422120377503}
+        var p2 = {"x":0.3115522505371633,"y":10.891290768463882,"z":-5.8800909763953655}
 
         // var p3 = {
         //     "x": (obj.position.x + obj.position.x) / 0.8,
         //     "y": 25.706226638635073,
         //     "z": (obj.position.z + obj.position.z) / 0.8,
         // }
-        // camera.position.copy(obj.z < 0 ? p2 : p1)
+        camera.position.z = obj.z < 0 ? p2.z : p1.z
         // if([3.803792830923257, -41.16780364415135, -40.91256046796157].indexOf(obj.position.y) != -1) {
         //     camera.position.copy(obj.position)
         //     scale = true;
         // }
-        // const wheelEvt1 = document.createEvent('MouseEvents');
-        // wheelEvt1.deltaY = -10
-        // // Initializing the event
-        // wheelEvt1.initMouseEvent(
-        //     'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-        //     true,       // bubbles (event will bubble up through the DOM)
-        //     true,       // cancelable (event can be canceled)
-        // )
+        const wheelEvt1 = document.createEvent('MouseEvents');
+        wheelEvt1.deltaY = -10
+        // Initializing the event
+        wheelEvt1.initMouseEvent(
+            'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+            true,       // bubbles (event will bubble up through the DOM)
+            true,       // cancelable (event can be canceled)
+        )
 
-        // for (let i = 1; i <= 10; i++) {
-        //     setTimeout(() => {
-        //         document.querySelector('canvas').dispatchEvent(wheelEvt1);
-        //     }, i * 30);
-        // }
-        // setTimeout(() => {
-        //     const wheelEvt1 = document.createEvent('MouseEvents');
-        //     wheelEvt1.deltaY = 10
-        //     // Initializing the event
-        //     wheelEvt1.initMouseEvent(
-        //         'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-        //         true,       // bubbles (event will bubble up through the DOM)
-        //         true,       // cancelable (event can be canceled)
-        //     )
+        for (let i = 1; i <= 5; i++) {
+            setTimeout(() => {
+                document.querySelector('canvas').dispatchEvent(wheelEvt1);
+            }, i * 30);
+        }
+        setTimeout(() => {
+            const wheelEvt1 = document.createEvent('MouseEvents');
+            wheelEvt1.deltaY = 10
+            // Initializing the event
+            wheelEvt1.initMouseEvent(
+                'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+                true,       // bubbles (event will bubble up through the DOM)
+                true,       // cancelable (event can be canceled)
+            )
 
-        //     for (let i = 1; i <= 15; i++) {
-        //         setTimeout(() => {
-        //             document.querySelector('canvas').dispatchEvent(wheelEvt1);
-        //         }, i * 50);
-        //     }
-        // }, 300);
+            for (let i = 1; i <= 16; i++) {
+                setTimeout(() => {
+                    document.querySelector('canvas').dispatchEvent(wheelEvt1);
+                }, i * 50);
+            }
+        }, 300);
     }
 
     function addText(m, model) {
@@ -367,13 +360,14 @@
         const v = manObj.find(v => v.id == obj.name)
         if (v) {
             const ids = route.query.ids;
-            if(ids.indexOf(v.id) == -1) {
+            if((ids||'').indexOf(v.id) == -1) {
                 var list = []
                 if(ids) list.push(...ids.split(','))
                 list.push(v.id)
+                isPointClick = true;
                 router.push({ path: route.path, query: { ids: list.join(',')}})
                 try {
-                    window.parent.treatment.getAcupObj().setPoints(list); 
+                    window.parent.treatment.getAcupObj().setPoints(list);
                 } catch (err){
                 }
             }
@@ -403,7 +397,8 @@
                 }
             });
         }
-        if(finishObj != null) {
+        if(finishObj != null && !isPointClick) {
+            isPointClick = false;
             setTimeout(() => {
                 onAcupointsClick(finishObj);
             }, 500);
