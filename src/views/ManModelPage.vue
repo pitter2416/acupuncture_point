@@ -7,12 +7,15 @@
     import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
     import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js'
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-    import manObj from '../assets/model/man.js'
+    import pointList from '../assets/model/man.js'
 
     import router from '../router'
 
+    const manObj = [];
+    pointList.forEach(d=>manObj.push(...d.children));
     const route = useRoute()
     const ids = (route.query.ids || '').split(',');
+    const pIds = (route.query.pIds || '').split(',');
     const target = ref();
     var mesh;
     var mouse = new THREE.Vector2();
@@ -165,6 +168,7 @@
                 });
                 preRender();
                 scene.add(object);
+                drawMeshLines();
                 object.scale.set(0.5, 0.5, 0.5)
                 // 将模型的中心点设置到canvas坐标系的中心点，保证模型显示是居中的，object就是操作的目标模型
                 let box = new THREE.Box3().setFromObject(object); // 获取模型的包围盒
@@ -250,10 +254,28 @@
         // }
     }
 
+    // 绘制线条
+    function drawMeshLines() {
+        pointList.filter((point)=>point.id != '0').forEach((point)=>{
+            // 创建线的材质
+            var lineMaterial = new THREE.LineBasicMaterial({ color: Math.random()*0x00ff00<<0 });
+            var vertices = [];
+            point.children.filter(e=>(e.x+e.y+e.z) != 0).forEach(d=>{
+                vertices.push(new THREE.Vector3(d.x,d.y,d.z+5))
+            })
+            // 创建几何体
+            var geometry = new THREE.BufferGeometry().setFromPoints(vertices);
+
+            // 创建线条对象
+            var line = new THREE.Line(geometry, lineMaterial);
+            targetObj.attach(line);
+
+        })
+    }
+
     function onAcupointsClick(obj) {
         if((camera.position.z > 0 && obj.position.z < -0.5) || (camera.position.z < 0 && obj.position.z >= -0.5)) {
             camera.position.set(camera.position.x,camera.position.y, -camera.position.z)
-            animate();
             const wheelEvt1 = document.createEvent('MouseEvents');
             wheelEvt1.initMouseEvent('wheel',true,true);
             document.querySelector('canvas').dispatchEvent(wheelEvt1);
@@ -358,6 +380,7 @@
     }
 
     function showMesh(obj) {
+        console.log('showMesh',obj)
         const cube = mesh.children.find(e=>e==obj);
         if(cube == null) return;
         const v = manObj.find(v => v.id == obj.name)
@@ -393,8 +416,9 @@
         removeDecals();
         var finishObj;
         const ids = route.query.ids && route.query.ids.split(',')
+        const pIds = (route.query.pIds || '').split(',');
+        mesh.children.forEach(e=>e.material.opacity=0);
         if(ids) {
-            mesh.children.forEach(e=>e.material.opacity=0);
             ids.forEach((id) => {
                 var cube = mesh.children.find(e => e.name == id)
                 var model = manObj.find((d)=>d.id==id)
