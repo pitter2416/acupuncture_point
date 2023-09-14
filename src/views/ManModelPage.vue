@@ -225,7 +225,7 @@
      function preRender() {
         preLoadMeshList.length = 0;
         preLoadMeshList.push(...manObj.filter(e=>(e.x+e.y+e.z) != 0));
-        var finishObj;
+        // var finishObj;
         for (var i = 0; i < preLoadMeshList.length; i++) {
             var model = preLoadMeshList[i];
             // 创建一个圆球的几何体
@@ -251,12 +251,14 @@
     }
 
     function onAcupointsClick(obj) {
-        console.log('position',obj);
-        camera.position.set(camera.position.x,camera.position.y,obj.position.z < 0? -camera.position.z : camera.position.z)
-        animate();
-        const wheelEvt1 = document.createEvent('MouseEvents');
-        wheelEvt1.initMouseEvent('wheel',true,true);
-        document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        // console.log('position',obj,'camera.position',camera.position);
+        if((camera.position.z > 0 && obj.position.z < 0) || (camera.position.z < 0 && obj.position.z > 0)) {
+            camera.position.set(camera.position.x,camera.position.y, -camera.position.z)
+            animate();
+            const wheelEvt1 = document.createEvent('MouseEvents');
+            wheelEvt1.initMouseEvent('wheel',true,true);
+            document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        }
         // var p1 = {"x":-1.2228690532530182,"y":5.0656494540051185,"z":2.6636422120377503}
         // var p2 = {"x":0.3115522505371633,"y":10.891290768463882,"z":-5.8800909763953655}
 
@@ -372,6 +374,11 @@
                     window.parent.treatment.getAcupObj().setPoints(list);
                 } catch (err){
                 }
+            } else {
+                isPointClick = true;
+                let list = [...ids.split(',')];
+                list.splice(list.indexOf(v.id),1);
+                router.push({ path: route.path, query: { ids: list.join(',')}})
             }
             return;
         }
@@ -400,11 +407,13 @@
             });
         }
         if(finishObj != null && !isPointClick) {
-            isPointClick = false;
             setTimeout(() => {
                 onAcupointsClick(finishObj);
             }, 500);
         }
+        setTimeout(() => {
+            isPointClick = false;
+        }, 600);
     });
   
 </script>
