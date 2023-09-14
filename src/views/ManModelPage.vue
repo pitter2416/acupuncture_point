@@ -3,7 +3,7 @@
     import * as THREE from 'three'
     import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
     import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-    import { onMounted,ref  } from 'vue'
+    import { onMounted,ref, render  } from 'vue'
     import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
     import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js'
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
@@ -251,53 +251,55 @@
     }
 
     function onAcupointsClick(obj) {
-        // var cube = mesh.children.find(e => e.name == `${obj.id}`)
-        // cube.material.opacity = 1;
-        // addText(cube, obj);
-
-        var p1 = {"x":-1.2228690532530182,"y":5.0656494540051185,"z":2.6636422120377503}
-        var p2 = {"x":0.3115522505371633,"y":10.891290768463882,"z":-5.8800909763953655}
+        console.log('position',obj);
+        camera.position.set(camera.position.x,camera.position.y,obj.position.z < 0? -camera.position.z : camera.position.z)
+        animate();
+        const wheelEvt1 = document.createEvent('MouseEvents');
+        wheelEvt1.initMouseEvent('wheel',true,true);
+        document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        // var p1 = {"x":-1.2228690532530182,"y":5.0656494540051185,"z":2.6636422120377503}
+        // var p2 = {"x":0.3115522505371633,"y":10.891290768463882,"z":-5.8800909763953655}
 
         // var p3 = {
         //     "x": (obj.position.x + obj.position.x) / 0.8,
         //     "y": 25.706226638635073,
         //     "z": (obj.position.z + obj.position.z) / 0.8,
         // }
-        camera.position.z = obj.z < 0 ? p2.z : p1.z
+        // camera.position.z = obj.z < 0 ? p2.z : p1.z
         // if([3.803792830923257, -41.16780364415135, -40.91256046796157].indexOf(obj.position.y) != -1) {
         //     camera.position.copy(obj.position)
         //     scale = true;
         // }
-        const wheelEvt1 = document.createEvent('MouseEvents');
-        wheelEvt1.deltaY = -10
+        // const wheelEvt1 = document.createEvent('MouseEvents');
+        // wheelEvt1.deltaY = -10
         // Initializing the event
-        wheelEvt1.initMouseEvent(
-            'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-            true,       // bubbles (event will bubble up through the DOM)
-            true,       // cancelable (event can be canceled)
-        )
+        // wheelEvt1.initMouseEvent(
+        //     'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+        //     true,       // bubbles (event will bubble up through the DOM)
+        //     true,       // cancelable (event can be canceled)
+        // )
 
-        for (let i = 1; i <= 5; i++) {
-            setTimeout(() => {
-                document.querySelector('canvas').dispatchEvent(wheelEvt1);
-            }, i * 30);
-        }
-        setTimeout(() => {
-            const wheelEvt1 = document.createEvent('MouseEvents');
-            wheelEvt1.deltaY = 10
-            // Initializing the event
-            wheelEvt1.initMouseEvent(
-                'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
-                true,       // bubbles (event will bubble up through the DOM)
-                true,       // cancelable (event can be canceled)
-            )
+        // for (let i = 1; i <= 5; i++) {
+        //     setTimeout(() => {
+        //         document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        //     }, i * 30);
+        // }
+        // setTimeout(() => {
+        //     const wheelEvt1 = document.createEvent('MouseEvents');
+        //     wheelEvt1.deltaY = 10
+        //     // Initializing the event
+        //     wheelEvt1.initMouseEvent(
+        //         'wheel',    // type of event (e.g., 'click', 'mousemove', 'mousedown')
+        //         true,       // bubbles (event will bubble up through the DOM)
+        //         true,       // cancelable (event can be canceled)
+        //     )
 
-            for (let i = 1; i <= 16; i++) {
-                setTimeout(() => {
-                    document.querySelector('canvas').dispatchEvent(wheelEvt1);
-                }, i * 50);
-            }
-        }, 300);
+        //     for (let i = 1; i <= 16; i++) {
+        //         setTimeout(() => {
+        //             document.querySelector('canvas').dispatchEvent(wheelEvt1);
+        //         }, i * 50);
+        //     }
+        // }, 300);
     }
 
     function addText(m, model) {
