@@ -251,8 +251,7 @@
     }
 
     function onAcupointsClick(obj) {
-        // console.log('position',obj,'camera.position',camera.position);
-        if((camera.position.z > 0 && obj.position.z < 0) || (camera.position.z < 0 && obj.position.z > 0)) {
+        if((camera.position.z > 0 && obj.position.z < -0.5) || (camera.position.z < 0 && obj.position.z >= -0.5)) {
             camera.position.set(camera.position.x,camera.position.y, -camera.position.z)
             animate();
             const wheelEvt1 = document.createEvent('MouseEvents');
