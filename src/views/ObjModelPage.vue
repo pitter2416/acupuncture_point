@@ -7,12 +7,13 @@
     import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
     import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js'
     import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+    import objList from '../assets/model/obj.js'
 
     const target = ref()
     let camera, scene, renderer;
     let object, line, raycaster, mouseHelper;
     const intersects = [];
-    const meshList = [];
+    const preLoadMeshList = [];
     let moved = false;
     var mouse = new THREE.Vector2();
     const position = new THREE.Vector3();
@@ -53,6 +54,9 @@
             object.position.y = - 0.95;
             object.scale.setScalar( 0.01 );
             scene.add( object );
+            mMesh = object.children[0];
+            mMesh.material.color = new THREE.Color( 0x0000ff )
+            preRender();
             render();
         }
 
@@ -71,7 +75,6 @@
         const loader = new OBJLoader( manager );
         loader.load('model/obj/male02.obj', function ( obj ) {
             object = obj;
-            meshList.push(...object.children)
         }, onProgress, onError );
         renderer = new THREE.WebGLRenderer( { antialias: true });
         // 设置背景色
@@ -89,6 +92,28 @@
         
     }
 
+    // 把所有穴位点全部添加到人体上，并设置成不透明
+    function preRender() {
+        preLoadMeshList.length = 0;
+        preLoadMeshList.push(...objList.filter(e=>(e.x+e.y+e.z) != 0));
+        for (var i = 0; i < preLoadMeshList.length; i++) {
+            var model = preLoadMeshList[i];
+            // 创建一个圆球的几何体
+            var geometry = new THREE.SphereGeometry(0.5, 20, 20);
+            // 创建一个材质
+            var material = new THREE.MeshBasicMaterial({ color: 0xffffff});
+            var mesh1 = new THREE.Mesh(geometry, material)
+            // Set the transformation matrix
+            var matrix = new THREE.Matrix4();
+            matrix.makeTranslation(model.x, model.y, model.z);
+            mesh1.matrix = matrix;
+            mesh1.position.setFromMatrixPosition(matrix);
+            mesh1.rotation.setFromRotationMatrix(matrix);
+            mesh1.name = model.id;
+            mMesh.attach(mesh1);
+        }
+    }
+
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -96,15 +121,11 @@
     }
 
     function checkIntersection(x, y, flag) {
-        if (!meshList.length) return;
+        if (!mMesh) return;
         mouse.x = (x / window.innerWidth) * 2 - 1;
         mouse.y = - (y / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
-        for(let i=0; i<meshList.length; i++) {
-            mMesh = meshList[i];
-            raycaster.intersectObject(mMesh, false, intersects);
-            if(intersects.length) break;
-        }
+        raycaster.intersectObject(mMesh, false, intersects);
         var objectIntersects = raycaster.intersectObjects( mMesh.children );
         if (intersects.length > 0) {
             const p = intersects[0].point;
@@ -159,12 +180,12 @@
         sphere.position.set(position.x, position.y, position.z);
         // 将圆球添加到场景中
         decals.push(sphere);
-        mMesh.attach(sphere)
-        render();
+        mMesh.attach(sphere);
         list.push({ id: index++, position: { x: position.x, y: position.y, z: position.z }, x: sphere.matrix.elements[12], y: sphere.matrix.elements[13], z: sphere.matrix.elements[14] })
-        if (list.length == 10) {
+        if (list.length % 10 == 0) {
             console.log(list)
         }
+        render();
     }
 
     function render() {
@@ -198,9 +219,6 @@
             }
         });
         window.addEventListener('pointermove', onPointerMove);
-        setTimeout(() => {
-            removeDecals();
-        }, 6000);
     })
 </script>
 
