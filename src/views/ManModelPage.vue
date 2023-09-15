@@ -260,14 +260,14 @@
     function drawMeshLines(ids) {
         if(!ids) return;
         if(lineList.length) {
-            lineList.forEach(d=>scene.remove(d));
+            lineList.forEach(d=>mesh.remove(d));
         }
         lineList.length = 0;
         pointList.filter((point)=>point.id != '0' && ids.indexOf(point.id) != -1).forEach(point=>{
             // 创建线的材质
             var lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff});
             var vertices = [];
-            var list = point.children.filter(e=>(e.x+e.y+e.z) != 0);
+            var list = point.children.filter(e=>(e.x+e.y+e.z+2) != 0);
             list.sort((a,b)=>{
                 if(a.position.y > b.position.y) {
                     return -1;
@@ -283,7 +283,7 @@
             // 创建线条对象
             var line = new THREE.Line(geometry, lineMaterial);
             line.name = `pid-${point.id}`;
-            scene.add(line);
+            mesh.attach(line);
             lineList.push(line);
         })
     }
