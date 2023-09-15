@@ -25,6 +25,7 @@
         normal: new THREE.Vector3()
     };
     var targetObj;
+    const lineList = [];
     const decals = [];
     const preMeshList = [];
     var isPointClick = false;
@@ -168,7 +169,6 @@
                 });
                 preRender();
                 scene.add(object);
-                drawMeshLines();
                 object.scale.set(0.5, 0.5, 0.5)
                 // 将模型的中心点设置到canvas坐标系的中心点，保证模型显示是居中的，object就是操作的目标模型
                 let box = new THREE.Box3().setFromObject(object); // 获取模型的包围盒
@@ -205,12 +205,7 @@
                     }
                 }
                 if(pIds) {
-                    pIds.forEach((id) => {
-                        var cube = mesh.children.find(e => e.name == `pid-${id}`)
-                        if(cube) {
-                            cube.material.opacity = 1;
-                        }
-                    });
+                    drawMeshLines();
                 }
             })
         })
@@ -262,8 +257,12 @@
     }
 
     // 绘制线条
-    function drawMeshLines() {
-        pointList.filter((point)=>point.id != '0').forEach((point)=>{
+    function drawMeshLines(ids) {
+        if(!ids) return;
+        if(lineList.length) {
+            lineList.forEach(d=>targetObj.remove(d));
+        }
+        pointList.filter((point)=>point.id != '0' && ids.indexOf(point.id) != -1).forEach(point=>{
             // 创建线的材质
             var lineMaterial = new THREE.LineBasicMaterial({ color: Math.random()*0x00ff00<<0, width: 12, transparent: true, opacity: 0});
             var vertices = [];
@@ -283,7 +282,8 @@
             // 创建线条对象
             var line = new THREE.Line(geometry, lineMaterial);
             line.name = `pid-${point.id}`;
-            mesh.attach(line);
+            targetObj.attach(line);
+            lineList.push(line);
         })
     }
 
@@ -444,12 +444,7 @@
             });
         }
         if(pIds) {
-            pIds.forEach((id) => {
-                var cube = mesh.children.find(e => e.name == `pid-${id}`)
-                if(cube) {
-                    cube.material.opacity = 1;
-                }
-            });
+            drawMeshLines();
         }
         if(finishObj != null && !isPointClick) {
             setTimeout(() => {
