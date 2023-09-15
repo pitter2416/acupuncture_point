@@ -185,10 +185,9 @@
                 // objPosition = object.position;
                 // finalPosition = camera.position;
                 animate();
-
+                mesh.children.forEach(e=>e.material.opacity=0);
                 if(ids) {
                     var finishObj;
-                    mesh.children.forEach(e=>e.material.opacity=0);
                     ids.forEach((id) => {
                         var cube = mesh.children.find(e => e.name == id)
                         var model = manObj.find((d)=>d.id==id)
@@ -204,6 +203,14 @@
                             onAcupointsClick(finishObj);
                         }, 500);
                     }
+                }
+                if(pIds) {
+                    pIds.forEach((id) => {
+                        var cube = mesh.children.find(e => e.name == `pid-${id}`)
+                        if(cube) {
+                            cube.material.opacity = 1;
+                        }
+                    });
                 }
             })
         })
@@ -258,18 +265,25 @@
     function drawMeshLines() {
         pointList.filter((point)=>point.id != '0').forEach((point)=>{
             // 创建线的材质
-            var lineMaterial = new THREE.LineBasicMaterial({ color: Math.random()*0x00ff00<<0 });
+            var lineMaterial = new THREE.LineBasicMaterial({ color: Math.random()*0x00ff00<<0, width: 12, transparent: true, opacity: 0});
             var vertices = [];
-            point.children.filter(e=>(e.x+e.y+e.z) != 0).forEach(d=>{
-                vertices.push(new THREE.Vector3(d.x,d.y,d.z+5))
+            var list = point.children.filter(e=>(e.x+e.y+e.z) != 0);
+            list.sort((a,b)=>{
+                if(a.position.y > b.position.y) {
+                    return -1;
+                } 
+                return 0;
+            })
+            list.forEach(d=>{
+                vertices.push(new THREE.Vector3(d.x,d.y,d.z+2))
             })
             // 创建几何体
             var geometry = new THREE.BufferGeometry().setFromPoints(vertices);
 
             // 创建线条对象
             var line = new THREE.Line(geometry, lineMaterial);
-            targetObj.attach(line);
-
+            line.name = `pid-${point.id}`;
+            mesh.attach(line);
         })
     }
 
@@ -426,6 +440,14 @@
                     cube.material.opacity = 1;
                     addText(cube, model);
                     finishObj = model;
+                }
+            });
+        }
+        if(pIds) {
+            pIds.forEach((id) => {
+                var cube = mesh.children.find(e => e.name == `pid-${id}`)
+                if(cube) {
+                    cube.material.opacity = 1;
                 }
             });
         }
