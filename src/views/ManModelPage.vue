@@ -267,15 +267,15 @@
             // 创建线的材质
             var lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff});
             var vertices = [];
-            var list = point.children.filter(e=>(e.x+e.y+e.z+2) != 0);
+            var list = point.children.filter(e=>(e.x+e.y+e.z) != 0);
             list.sort((a,b)=>{
-                if(a.position.y > b.position.y) {
+                if(a.y > b.y) {
                     return -1;
                 } 
                 return 0;
             })
             list.forEach(d=>{
-                vertices.push(new THREE.Vector3(d.x,d.y,d.z+2))
+                vertices.push(new THREE.Vector3(d.x,d.y,d.z+0.2))
             })
             // 创建几何体
             var geometry = new THREE.BufferGeometry().setFromPoints(vertices);
