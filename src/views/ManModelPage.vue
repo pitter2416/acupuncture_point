@@ -205,7 +205,7 @@
                     }
                 }
                 if(pIds) {
-                    drawMeshLines();
+                    drawMeshLines(pIds);
                 }
             })
         })
@@ -260,11 +260,12 @@
     function drawMeshLines(ids) {
         if(!ids) return;
         if(lineList.length) {
-            lineList.forEach(d=>targetObj.remove(d));
+            lineList.forEach(d=>scene.remove(d));
         }
+        lineList.length = 0;
         pointList.filter((point)=>point.id != '0' && ids.indexOf(point.id) != -1).forEach(point=>{
             // 创建线的材质
-            var lineMaterial = new THREE.LineBasicMaterial({ color: Math.random()*0x00ff00<<0, width: 12, transparent: true, opacity: 0});
+            var lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff});
             var vertices = [];
             var list = point.children.filter(e=>(e.x+e.y+e.z) != 0);
             list.sort((a,b)=>{
@@ -282,7 +283,7 @@
             // 创建线条对象
             var line = new THREE.Line(geometry, lineMaterial);
             line.name = `pid-${point.id}`;
-            targetObj.attach(line);
+            scene.add(line);
             lineList.push(line);
         })
     }
@@ -400,12 +401,17 @@
         const v = manObj.find(v => v.id == obj.name)
         if (v) {
             const ids = route.query.ids;
+            const pIds = route.query.pIds;
             if((ids||'').indexOf(v.id) == -1) {
                 var list = []
                 if(ids) list.push(...ids.split(','))
                 list.push(v.id)
                 isPointClick = true;
-                router.push({ path: route.path, query: { ids: list.join(',')}})
+                const query = { ids: list.join(',')}
+                if(pIds) {
+                    query['pIds'] = pIds
+                }
+                router.push({ path: route.path, query})
                 try {
                     window.parent.treatment.getAcupObj().setPoints(list);
                 } catch (err){
@@ -444,7 +450,7 @@
             });
         }
         if(pIds) {
-            drawMeshLines();
+            drawMeshLines(pIds);
         }
         if(finishObj != null && !isPointClick) {
             setTimeout(() => {
