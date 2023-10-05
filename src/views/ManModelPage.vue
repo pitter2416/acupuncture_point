@@ -264,19 +264,14 @@
         }
         lineList.length = 0;
         pointList.filter((point)=>point.id != '0' && ids.indexOf(point.id) != -1).forEach(point=>{
+            if(!point.pointList || !point.pointList.length) return;
             // 创建线的材质
-            var lineMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff});
+            var lineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
             var vertices = [];
-            var list = point.children.filter(e=>(e.x+e.y+e.z) != 0);
-            list.sort((a,b)=>{
-                if(a.y > b.y) {
-                    return -1;
-                } 
-                return 0;
+            point.pointList.filter(e=>(e.x+e.y+e.z) != 0).forEach(d=>{
+                vertices.push(new THREE.Vector3(d.x+0.15,d.y+0.15,d.z+0.25))
             })
-            list.forEach(d=>{
-                vertices.push(new THREE.Vector3(d.x,d.y,d.z+0.2))
-            })
+
             // 创建几何体
             var geometry = new THREE.BufferGeometry().setFromPoints(vertices);
 
@@ -395,7 +390,6 @@
     }
 
     function showMesh(obj) {
-        console.log('showMesh',obj)
         const cube = mesh.children.find(e=>e==obj);
         if(cube == null) return;
         const v = manObj.find(v => v.id == obj.name)
